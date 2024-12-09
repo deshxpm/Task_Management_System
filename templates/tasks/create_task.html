@@ -1,0 +1,30 @@
+{% extends 'dashboard.html' %}
+{% block content %}
+    <div class="content">
+        <h2>Create Task</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="title" class="form-label">Task Title</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="eta" class="form-label">ETA</label>
+                <input type="datetime-local" class="form-control" id="eta" name="eta" required>
+            </div>
+            <div class="mb-3">
+                <label for="assigned_to" class="form-label">Assign To</label>
+                <select class="form-control" id="assigned_to" name="assigned_to" required>
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-success">Create Task</button>
+        </form>
+    </div>
+{% endblock %}

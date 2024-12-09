@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9fafb;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            height: 100vh;
+            width: 250px;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 80px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            margin: 5px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            margin-left: 250px;
+            transition: all 0.3s ease;
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: white;
+            font-weight: bold;
+        }
+
+        .navbar .dropdown-menu {
+            background: white;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .dropdown-item:hover {
+            background: #f0f0f0;
+        }
+
+        /* Profile Circle */
+        .profile-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            background-color: #ff6f61;
+        }
+
+        /* Content Area */
+        .content {
+            margin-left: 250px;
+            transition: all 0.3s ease;
+            padding: 40px 20px;
+        }
+
+        .content h2 {
+            color: #333;
+        }
+
+        .content p {
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        /* Button Styling */
+        #toggleSidebar {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+        }
+
+        #toggleSidebar:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="menu-item"> <a href="{% url 'dashboard' %}" style="color: white; text-decoration: none;">Dashboard</a></div>
+        <div class="menu-item"><a href="{% url 'task_list' %}" style="color: white; text-decoration: none;"> Tasks</a></div>
+        <div class="menu-item">Reports</div>
+        <div class="menu-item">Settings</div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <button class="btn" id="toggleSidebar">
+            <i class="bi bi-list"></i>
+        </button>
+        <span class="navbar-brand mx-auto">Welcome, {{ user.username }}</span>
+        <div class="dropdown">
+            <button class="btn dropdown-toggle d-flex align-items-center" type="button" id="profileMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" width="40" height="40">
+                {% else %}
+                    <div class="profile-circle">{{ user.first_name|default:"D"|slice:":1" }}</div>
+                {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileMenu">
+                <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                <li><a class="dropdown-item" href="/logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+        {% block content %}
+    
+        <!-- Main Content -->
+        <div class="content">
+            <h2>Welcome, {{ user.username }}</h2>
+            <p>Start managing your tasks and explore features from the sidebar menu!</p>
+        </div>
+        {% endblock %}
+
+
+
+    <script>
+        // Sidebar Toggle Script
+        const toggleSidebar = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const content = document.querySelector('.content');
+        const navbar = document.querySelector('.navbar');
+
+        toggleSidebar.addEventListener('click', () => {
+            sidebar.classList.toggle('d-none');
+            if (sidebar.classList.contains('d-none')) {
+                navbar.style.marginLeft = '0';
+                content.style.marginLeft = '0';
+            } else {
+                navbar.style.marginLeft = '250px';
+                content.style.marginLeft = '250px';
+            }
+        });
+    </script>
+</body>
+</html>

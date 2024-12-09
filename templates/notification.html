@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>Notifications</h3>
+    <ul class="list-group">
+        {% for notification in notifications %}
+            <li class="list-group-item {% if not notification.is_read %}list-group-item-info{% endif %}">
+                <div class="d-flex justify-content-between">
+                    <span>{{ notification.message }}</span>
+                    <button class="btn btn-sm btn-primary mark-as-read" data-id="{{ notification.id }}">
+                        Mark as Read
+                    </button>
+                </div>
+                <small class="text-muted">Received: {{ notification.created_at }}</small>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No notifications.</li>
+        {% endfor %}
+    </ul>
+</div>
+<script>
+    document.querySelectorAll('.mark-as-read').forEach(button => {
+        button.addEventListener('click', () => {
+            const notificationId = button.getAttribute('data-id');
+            fetch(`/notifications/mark-as-read/${notificationId}/`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        button.parentElement.parentElement.classList.remove('list-group-item-info');
+                        button.remove();
+                    }
+                });
+        });
+    });
+</script>
+{% endblock %}

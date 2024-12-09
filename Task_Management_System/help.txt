@@ -1,0 +1,6 @@
+Check Redis Status
+To verify if Redis is running, you can check the status:
+
+
+Run this command: redis-cli ping
+Return : PONG

@@ -1,0 +1,183 @@
+
+{% extends 'dashboard.html' %}
+{% block content %}
+{% load task_extras %}
+<style>
+    /* General Layout */
+    .content {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    /* Card Styling */
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: #ffffff;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h2 {
+        font-weight: bold;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .card-body h5 {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .card-body p {
+        margin-bottom: 15px;
+        line-height: 1.6;
+    }
+
+    .card-footer {
+        background-color: #f1f5f9;
+    }
+
+    .btn-outline-primary {
+        color: #0056b3;
+        border-color: #0056b3;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #0056b3;
+        color: white;
+    }
+
+    /* Badge Customization */
+    .badge {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        border-radius: 20px;
+    }
+
+    /* Dynamic Status Colors */
+    .badge-pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-completed {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-in-progress {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .badge-cancelled {
+        background-color: #dc3545;
+        color: white;
+    }
+</style>
+
+
+<div class="content p-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Task: {{ task.title }}</h2>
+            <span class="badge bg-warning text-dark fs-6">{{ task.priority|title }}</span>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <h5 class="text-dark">Description:</h5>
+                <p class="text-muted fs-5">{{ task.description }}</p>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="text-dark">Assigned To:</h5>
+                <p class="text-muted fs-5">{{ task.assigned_to.username }}</p>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="text-dark">Status:</h5>
+                <span class="badge {{ task.status|status_color }}">{{ task.status|title }}</span>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="text-dark">Estimated Time of Completion:</h5>
+                <p class="text-success fs-5">{{ task.eta }}</p>
+            </div>
+
+            {% if task.parent_task %}
+            <div class="mb-4">
+                <h5 class="text-dark">Parent Task:</h5>
+                <a href="{% url 'task_detail' task.parent_task.id %}" class="text-primary">{{ task.parent_task.title }}</a>
+            </div>
+            {% endif %}
+
+            <div>
+                <h5 class="text-dark">Created By:</h5>
+                <p class="text-muted fs-5">{{ task.created_by.username }}</p>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <a href="{% url 'task_list' %}" class="btn btn-outline-primary">Back to Tasks</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+{% comment%}
+
+{% extends 'dashboard.html' %}
+{% block content %}
+    <div class="content">
+        <h2>Task: {{ task.title }}</h2>
+        <p>{{ task.description }}</p>
+        <p>ETA: {{ task.eta }}</p>
+
+        <!-- <h3>Chat</h3>
+        <div id="chat-box" class="border p-3 mb-3" style="height: 300px; overflow-y: scroll;">
+            {% for message in messages %}
+            <p><strong>{{ message.sender.username }}:</strong> {{ message.message }}</p>
+            {% endfor %}
+        </div>
+        <form id="chat-form" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="task_id" value="{{ task.id }}">
+            <div class="mb-3">
+                <textarea class="form-control" name="message" rows="3" placeholder="Type your message..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+        <script>
+            const form = document.getElementById('chat-form');
+            form.onsubmit = async (event) => {
+                event.preventDefault();
+                const formData = new FormData(form);
+                const response = await fetch("{% url 'save_message' %}", {
+                    method: "POST",
+                    body: formData,
+                });
+                if (response.ok) {
+                    location.reload();
+                }
+            };
+        </script> -->
+    </div>
+{% endblock %}
+
+{% endcomment %}
