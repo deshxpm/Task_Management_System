@@ -4,3 +4,6 @@ To verify if Redis is running, you can check the status:
 
 Run this command: redis-cli ping
 Return : PONG
+
+
+# Run Daphne Server: daphne -p 8001 your_app_name.asgi:application
