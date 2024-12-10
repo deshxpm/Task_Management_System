@@ -1,0 +1,32 @@
+{% extends 'dashboard.html' %}
+{% block content %}
+    <div class="content mt-5">
+        <h1>Designation</h1>
+        <a href="{% url 'create_designation' %}" class="btn btn-primary mb-3">Add Designation</a>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for designation in designations %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ designation.name }}</td>
+                    <td>
+                        <a href="{% url 'edit_designation' designation.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'delete_designation' designation.id %}" class="btn btn-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">No designation found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock%}    

@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils.timezone import now
-from .models import Task, ChatMessage, User, Notification
+from .models import Task, ChatMessage, User, Notification, Department, Designation,Company
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
+from .utils import *
+
 
 # Create your views here.
 def landingView(request):
@@ -31,6 +33,83 @@ def register_view(request):
             return redirect('register')
 
     return render(request, 'register.html')
+
+
+def create_employee(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+
+        try:
+            user = User.objects.create(username=phone, 
+                                    first_name=first_name,
+                                    last_name=last_name,
+                                    email=email, 
+                                    phone_number=phone,
+                                    company=request.user.company)
+            
+            if 'profile_picture' in request.FILES:
+                user.profile_picture = request.FILES['profile_picture']
+                user.save()
+
+            send_user_credentials(request, user, first_name, last_name)  # Email the credentials
+            return redirect('employee_list')
+
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            return render(request, 'employee/create_employee.html')  
+          
+    return render(request, 'employee/create_employee.html')
+
+
+
+def employee_list(request):
+    employees = User.objects.filter(is_staff=False)  # Assuming employees are non-staff users
+    return render(request, 'employee/employee_list.html', {'employees': employees})
+
+
+# View Employee
+def view_employee(request, id):
+    employee = get_object_or_404(User, id=id, is_staff=False)  # Assuming employees are non-staff users
+    return render(request, 'employee/view_employee.html', {'employee': employee})
+
+# Edit Employee
+def edit_employee(request, id):
+    employee = get_object_or_404(User, id=id, is_staff=False)  # Assuming employees are non-staff users
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        phone_number = request.POST.get('phone_number')
+
+        # Update fields
+        employee.username = username
+        employee.email = email
+        employee.phone_number = phone_number
+
+        if 'profile_picture' in request.FILES:
+            employee.profile_picture = request.FILES['profile_picture']
+
+        employee.save()
+        messages.success(request, 'Employee details updated successfully.')
+        return redirect('employee_list')
+
+    return render(request, 'employee/edit_employee.html', {'employee': employee})
+
+# Delete Employee
+def delete_employee(request, id):
+    employee = get_object_or_404(User, id=id, is_staff=False)  # Assuming employees are non-staff users
+
+    if request.method == 'POST':
+        employee.delete()
+        messages.success(request, 'Employee deleted successfully.')
+        return redirect('employee_list')
+
+    return render(request, 'employee/delete_employee.html', {'employee': employee})
+
 
 
 # Login View
@@ -92,7 +171,7 @@ def create_task(request):
         )
         return redirect('task_list')
 
-    users = User.objects.exclude(id=request.user.id)
+    users = User.objects.exclude(id=request.user.id,company=request.user.company,)
     return render(request, 'tasks/create_task.html', {'users': users})
 
 # Task Detail and Chat
@@ -211,3 +290,96 @@ def mark_messages_as_read(request, task_id):
         ChatMessage.objects.filter(task_id=task_id, is_read=False).update(is_read=True)
         return JsonResponse({'status': 'success'})
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+
+
+
+
+
+
+
+
+# List Departments
+def list_departments(request):
+    departments = Department.objects.filter(company=request.user.company)
+    return render(request, 'department/list_departments.html', {'departments': departments})
+
+# Create Department
+def create_department(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        company = request.user.company
+
+        Department.objects.create(name=name, company=company)
+        messages.success(request, 'Department created successfully.')
+        return redirect('list_departments')
+
+    return render(request, 'department/create_department.html')
+
+# Edit Department
+def edit_department(request, id):
+    department = get_object_or_404(Department, id=id, company=request.user.company)
+
+    if request.method == 'POST':
+        department.name = request.POST.get('name')
+        department.save()
+        messages.success(request, 'Department updated successfully.')
+        return redirect('list_departments')
+
+    return render(request, 'department/edit_department.html', {'department': department})
+
+# Delete Department
+def delete_department(request, id):
+    department = get_object_or_404(Department, id=id, company=request.user.company)
+
+    if request.method == 'POST':
+        department.delete()
+        messages.success(request, 'Department deleted successfully.')
+        return redirect('list_departments')
+
+    return render(request, 'department/delete_department.html', {'department': department})
+
+# List Designations
+def list_designations(request):
+    designations = Designation.objects.filter(company=request.user.company)
+    return render(request, 'designation/list_designations.html', {'designations': designations})
+
+# Create Designation
+def create_designation(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        company = request.user.company
+
+        Designation.objects.create(name=name, company=company)
+        messages.success(request, 'Designation created successfully.')
+        return redirect('list_designations')
+
+    return render(request, 'designation/create_designation.html')
+
+# Edit Designation
+def edit_designation(request, id):
+    designation = get_object_or_404(Designation, id=id, company=request.user.company)
+
+    if request.method == 'POST':
+        designation.name = request.POST.get('name')
+        designation.save()
+        messages.success(request, 'Designation updated successfully.')
+        return redirect('list_designations')
+
+    return render(request, 'designation/edit_designation.html', {'designation': designation})
+
+# Delete Designation
+def delete_designation(request, id):
+    designation = get_object_or_404(Designation, id=id, company=request.user.company)
+
+    if request.method == 'POST':
+        designation.delete()
+        messages.success(request, 'Designation deleted successfully.')
+        return redirect('list_designations')
+
+    return render(request, 'designation/delete_designation.html', {'designation': designation})
+
+
+
+

@@ -1,0 +1,12 @@
+{% extends 'dashboard.html' %}
+{% block content %}
+    <div class="content mt-5">
+        <h1>Delete Employee</h1>
+        <p>Are you sure you want to delete {{ employee.username }}?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete</button>
+            <a href="{% url 'employee_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+{% endblock %}

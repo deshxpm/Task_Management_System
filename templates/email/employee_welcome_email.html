@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            color: #888888;
+            padding: 10px;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            color: #ffffff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to {{ company_name }}</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{ employee_name }},</p>
+            <p>We are excited to have you as part of our team. Below are your credentials for accessing your account:</p>
+            <ul>
+                <li><strong>Username:</strong> {{ username }}</li>
+                <li><strong>Password:</strong> {{ password }}</li>
+            </ul>
+            <p>You can log in using the following link:</p>
+            <p><a href="{{ login_url }}" class="button">Login to Your Account</a></p>
+            <p>If you have any questions or need assistance, please do not hesitate to contact us.</p>
+            <p>Best regards,<br>The {{ company_name }} Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ year }} {{ company_name }}. All Rights Reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

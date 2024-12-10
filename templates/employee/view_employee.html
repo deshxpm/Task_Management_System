@@ -1,0 +1,31 @@
+{% extends 'dashboard.html' %}
+{% block content %}
+    <div class="content mt-5">
+        <h1>Employee Details</h1>
+        <table class="table table-bordered mt-3">
+            <tr>
+                <th>Name</th>
+                <td>{{ employee.first_name }} {{ employee.last_name }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ employee.email }}</td>
+            </tr>
+            <tr>
+                <th>Phone Number</th>
+                <td>{{ employee.phone_number }}</td>
+            </tr>
+            <tr>
+                <th>Profile Picture</th>
+                <td>
+                    {% if employee.profile_picture %}
+                        <img src="{{ employee.profile_picture.url }}" alt="Profile Picture" width="100">
+                    {% else %}
+                        No profile picture
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        <a href="{% url 'employee_list' %}" class="btn btn-secondary">Back</a>
+    </div>
+{% endblock %}
