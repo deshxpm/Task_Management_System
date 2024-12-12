@@ -1,0 +1,60 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Edit Role</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Role Name:</label>
+                            <input 
+                                type="text" 
+                                name="name" 
+                                id="name" 
+                                class="form-control" 
+                                value="{{ role.name }}" 
+                                required 
+                                placeholder="Enter role name"
+                            >
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="permissions" class="form-label">Permissions:</label>
+                            <select 
+                                name="permissions" 
+                                id="permissions" 
+                                class="form-select" 
+                                multiple
+                            >
+                                {% for permission in permissions %}
+                                    <option 
+                                        value="{{ permission.id }}" 
+                                        {% if permission in role.permissions.all %}selected{% endif %}
+                                    >
+                                        {{ permission.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">
+                                Hold down the Ctrl (Windows) / Command (Mac) button to select multiple options.
+                            </small>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save"></i> Update Role
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

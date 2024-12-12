@@ -10,6 +10,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f9fafb;
+            transition: all 0.3s ease;
         }
 
         /* Sidebar Styling */
@@ -38,6 +39,12 @@
 
         .sidebar .menu-item:hover {
             background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .sidebar .menu-item[style="cursor: not-allowed;"] {
+            color: rgb(193, 190, 190); 
+            opacity: 0.6;
         }
 
         /* Navbar Styling */
@@ -84,15 +91,19 @@
             margin-left: 250px;
             transition: all 0.3s ease;
             padding: 40px 20px;
+            opacity: 0;
+            animation: fadeIn 0.6s forwards;
         }
 
         .content h2 {
             color: #333;
+            animation: slideInLeft 0.6s ease-out;
         }
 
         .content p {
             color: #555;
             font-size: 1.1rem;
+            animation: slideInRight 0.6s ease-out;
         }
 
         /* Button Styling */
@@ -100,11 +111,80 @@
             background: rgba(255, 255, 255, 0.2);
             color: white;
             border: none;
+            transition: background 0.3s ease;
         }
 
         #toggleSidebar:hover {
             background: rgba(255, 255, 255, 0.4);
         }
+
+        /* Animations */
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInLeft {
+            0% {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInRight {
+            0% {
+                transform: translateX(50px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+
+        .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+    .box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 200px;
+      height: 100px;
+      background-color: #4caf50;
+      color: white;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .box:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+    .arrow {
+      width: 50px;
+      height: 50px;
+    }
+    .arrow path {
+      fill: #1976d2;
+    }
+  </style>
+
     </style>
 </head>
 <body>
@@ -112,11 +192,38 @@
     <div class="sidebar" id="sidebar">
         <div class="menu-item"> <a href="{% url 'dashboard' %}" style="color: white; text-decoration: none;">Dashboard</a></div>
         <div class="menu-item"><a href="{% url 'employee_list' %}" style="color: white; text-decoration: none;"> Employee</a></div>
-        <div class="menu-item"><a href="{% url 'list_departments' %}" style="color: white; text-decoration: none;"> Department</a></div>
-        <div class="menu-item"><a href="{% url 'list_designations' %}" style="color: white; text-decoration: none;"> Designation</a></div>
+
+        {% if access_permissions.Department %}
+            <div class="menu-item">
+                <a href="{% url 'list_departments' %}" style="color: white; text-decoration: none;">Department</a>
+            </div>
+        {% else %}
+            <div class="menu-item" style="cursor: not-allowed;" title="You do not have access to Department.">
+                Department <span class="text-muted">(Restricted)</span>
+            </div>
+        {% endif %}
+
+        {% if access_permissions.Designation %}
+            <div class="menu-item">
+                <a href="{% url 'list_designations' %}" style="color: white; text-decoration: none;">Designation</a>
+            </div>
+        {% else %}
+            <div class="menu-item" style="cursor: not-allowed;" title="You do not have access to Designation.">
+                Designation <span class="text-muted">(Restricted)</span>
+            </div>
+        {% endif %}
+
         <div class="menu-item"><a href="{% url 'task_list' %}" style="color: white; text-decoration: none;"> Tasks</a></div>
         <div class="menu-item">Reports</div>
-        <div class="menu-item">Settings</div>
+        {% if access_permissions.Settings %}
+            <div class="menu-item">
+                <a href="{% url 'role_list' %}" style="color: white; text-decoration: none;">Settings</a>
+            </div>
+        {% else %}
+            <div class="menu-item" style="cursor: not-allowed;" title="You do not have access to Settings.">
+                Settings <span class="text-muted">(Restricted)</span>
+            </div>
+        {% endif %}
     </div>
 
     <!-- Navbar -->
@@ -124,7 +231,7 @@
         <button class="btn" id="toggleSidebar">
             <i class="bi bi-list"></i>
         </button>
-        <span class="navbar-brand mx-auto">Welcome, {{ user.username }}</span>
+        <span class="navbar-brand mx-auto"><small> Welcome,</small> {% if user.first_name %}{{user.first_name|title }} {% else %} Guest {%endif%}</span>
         <div class="dropdown">
             <button class="btn dropdown-toggle d-flex align-items-center" type="button" id="profileMenu" data-bs-toggle="dropdown" aria-expanded="false">
                 {% if user.profile_picture %}
@@ -134,22 +241,30 @@
                 {% endif %}
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileMenu">
-                <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                <li><a class="dropdown-item" href="/profile/">Profile</a></li>
                 <li><a class="dropdown-item" href="/logout">Logout</a></li>
             </ul>
         </div>
     </nav>
 
-        {% block content %}
-    
+    {% block content %}
         <!-- Main Content -->
         <div class="content">
-            <h2>Welcome, {{ user.username }}</h2>
+            <h2>**"Task and Employee Management Dashboard"**</h2> 
+            <h3>**"Streamlining Workflow with Intuitive Design and Visual Guides"**</h3>
             <p>Start managing your tasks and explore features from the sidebar menu!</p>
+
+            <div class="box" id="taskCreation">Task Creation</div>
+            <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 2L12 22M19 15L12 22L5 15" />
+            </svg>
+            <div class="box" id="taskAssignment">Task Assignment</div>
+            <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 2L12 22M19 15L12 22L5 15" />
+            </svg>
+            <div class="box" id="notification">Notification</div>
         </div>
-        {% endblock %}
-
-
+    {% endblock %}
 
     <script>
         // Sidebar Toggle Script
@@ -169,5 +284,20 @@
             }
         });
     </script>
+
+    <script>
+        document.getElementById('taskCreation').addEventListener('click', () => {
+        alert('Task creation process begins! Admin inputs task details.');
+        });
+
+        document.getElementById('taskAssignment').addEventListener('click', () => {
+        alert('Task is assigned to employees after validation.');
+        });
+
+        document.getElementById('notification').addEventListener('click', () => {
+        alert('The assigned employee receives a notification.');
+        });
+    </script>
+
 </body>
 </html>

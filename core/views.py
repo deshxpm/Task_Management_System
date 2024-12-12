@@ -2,10 +2,32 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils.timezone import now
-from .models import Task, ChatMessage, User, Notification, Department, Designation,Company
+from .models import Task, ChatMessage, User, Notification, Department, Designation,Company, Role, Permission
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from .utils import *
+import openpyxl
+from django.http import HttpResponse, HttpResponseForbidden
+from functools import wraps
+
+# Custom permission check decorator
+def permission_required(permission_name):
+    """Custom decorator to check if the user has a specific permission."""
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            # Check if the user has the required permission
+            if not request.user.has_permission(permission_name):
+                # Return a 403 Forbidden response if permission is not granted
+                return render(request, '403.html')#HttpResponseForbidden("You don't have permission to access this page.")
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+@permission_required('view_reports')
+def some_protected_view(request):
+    """A protected view where users need specific permissions to access it."""
+    return render(request, 'protected_page.html')
 
 
 # Create your views here.
@@ -35,6 +57,66 @@ def register_view(request):
     return render(request, 'register.html')
 
 
+from django.contrib.auth import update_session_auth_hash
+@login_required(login_url='/login/')
+def user_profile(request):
+    user = request.user
+
+    if request.method == 'POST':
+        # Handling the profile form
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        profile_picture = request.FILES.get('profile_picture')
+
+        if first_name and last_name and email:
+            # Update user info
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.save()
+
+            # Update profile picture if provided
+            if profile_picture:
+                user.profile_picture = profile_picture
+                user.save()
+
+            # Handle password change
+            current_password = request.POST.get('current_password')
+            new_password = request.POST.get('new_password')
+            confirm_new_password = request.POST.get('confirm_new_password')
+
+            if current_password and new_password and confirm_new_password:
+                if user.check_password(current_password):
+                    if new_password == confirm_new_password:
+                        user.set_password(new_password)
+                        user.save()
+                        update_session_auth_hash(request, user)  # Keep user logged in after password change
+                        messages.success(request, "Your password has been changed successfully.")
+                    else:
+                        messages.error(request, "New passwords do not match.")
+                else:
+                    messages.error(request, "Current password is incorrect.")
+
+            messages.success(request, "Your profile has been updated successfully.")
+            return redirect('user_profile')  # Avoid resubmission on refresh
+        else:
+            messages.error(request, "Please fill in all required fields.")
+    else:
+        profile_form = {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'profile_picture': user.profile_picture
+        }
+
+    return render(request, 'userprofile.html', {
+        'profile_form': profile_form,
+        'user': user
+    })
+
+
+@login_required(login_url='/login/')
 def create_employee(request):
     if request.method == "POST":
         username = request.POST.get('username')
@@ -65,18 +147,20 @@ def create_employee(request):
     return render(request, 'employee/create_employee.html')
 
 
-
+@login_required(login_url='/login/')
 def employee_list(request):
     employees = User.objects.filter(is_staff=False)  # Assuming employees are non-staff users
     return render(request, 'employee/employee_list.html', {'employees': employees})
 
 
 # View Employee
+@login_required(login_url='/login/')
 def view_employee(request, id):
     employee = get_object_or_404(User, id=id, is_staff=False)  # Assuming employees are non-staff users
     return render(request, 'employee/view_employee.html', {'employee': employee})
 
 # Edit Employee
+@login_required(login_url='/login/')
 def edit_employee(request, id):
     employee = get_object_or_404(User, id=id, is_staff=False)  # Assuming employees are non-staff users
 
@@ -100,6 +184,8 @@ def edit_employee(request, id):
     return render(request, 'employee/edit_employee.html', {'employee': employee})
 
 # Delete Employee
+@login_required(login_url='/login/')
+@permission_required('delete_employee')
 def delete_employee(request, id):
     employee = get_object_or_404(User, id=id, is_staff=False)  # Assuming employees are non-staff users
 
@@ -109,6 +195,75 @@ def delete_employee(request, id):
         return redirect('employee_list')
 
     return render(request, 'employee/delete_employee.html', {'employee': employee})
+
+@login_required(login_url='/login/')
+def download_demo_file(request):
+    # Create a sample Excel file (demo file)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Employees"
+    
+    # Add headers to the Excel sheet
+    ws.append(['First Name', 'Last Name', 'Email', 'Phone', 'Role'])# 'Department', 'Designation'])
+    
+    # Sample data
+    employees = [
+        ['Desh', 'Deepak', 'deshdeepakxpm@gmail.com', '7011101001', 'Founder'],# 'IT', 'CEO'],
+        ['Himanshi', 'Kushwaha', 'radhikaxpm@gmail.com', '9717757483', 'Manager'],# 'HR', 'HR Specialist']
+        ['Radhika', 'Kushwaha', 'radhikaxpm@gmail.com', '9717757483', 'Employee']# 'IT', 'Software Engineer']
+    ]
+    
+    # Add sample data rows
+    for employee in employees:
+        ws.append(employee)
+    
+    # Prepare response with the demo file as an attachment
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=employee_demo.xlsx'
+    
+    # Save the workbook to the HTTP response, which will automatically trigger a download in the browser
+    wb.save(response)
+    
+    return response
+
+@login_required(login_url='/login/')
+# View for uploading the Excel file and creating bulk employees
+def upload_employee_excel(request):
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        excel_file = request.FILES['excel_file']
+        try:
+            # Open the uploaded Excel file
+            wb = openpyxl.load_workbook(excel_file)
+            ws = wb.active
+            
+            # Iterate over the rows and create employee records
+            for row in ws.iter_rows(min_row=2, values_only=True):  # Start from the second row to skip headers
+                first_name, last_name, email, phone, role = row #, department, designation = row
+                # Create employee object (you can add validations here as needed)
+                role_instance = Role.objects.create(name=role, company=request.user.company)
+                employee = User(
+                    username=phone,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    phone_number=phone,
+                    role=role_instance,
+                    company=request.user.company,
+                    # department=department,
+                    # designation=designation,
+                )
+                employee.save()
+            
+            messages.success(request, 'Employees uploaded successfully!')
+        except Exception as e:
+            messages.error(request, f"Error uploading file: {e}")
+        
+        return redirect('employee_list')
+
+    return redirect('employee_list')
+
+
+
 
 
 
@@ -131,7 +286,6 @@ def login_view(request):
 
 
 # Logout View
-@login_required(login_url='/login/')
 def logout_view(request):
     logout(request)
     messages.success(request, "Logged out successfully!")
@@ -141,7 +295,12 @@ def logout_view(request):
 # Dashboard View (example protected view)
 @login_required(login_url='/login/')
 def dashboard_view(request):
-    return render(request, 'dashboard.html', {'user': request.user})
+    access_permissions = {
+        'Settings': request.user.has_permission('Settings'),
+        'Department': request.user.has_permission('Department'),
+        'Designation': request.user.has_permission('Designation')
+        }
+    return render(request, 'dashboard.html', {'user': request.user,'access_permissions':access_permissions})
 
 
 
@@ -255,13 +414,13 @@ def delete_message_view(request, message_id):
         return JsonResponse({'status': 'error', 'message': 'Message not found'}, status=404)
 
 
-@login_required
+@login_required(login_url='/login/')
 def notifications_view(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'notifications.html', {'notifications': notifications})
 
 
-@login_required
+@login_required(login_url='/login/')
 def mark_notification_as_read(request, notification_id):
     try:
         notification = Notification.objects.get(id=notification_id, user=request.user)
@@ -274,7 +433,7 @@ def mark_notification_as_read(request, notification_id):
 
 
 from django.views.decorators.http import require_GET
-
+@login_required(login_url='/login/')
 @require_GET
 def get_unread_message_count(request):
     task_id = request.GET.get('task_id')
@@ -283,7 +442,7 @@ def get_unread_message_count(request):
         return JsonResponse({'unread_count': count})
     return JsonResponse({'error': 'Task ID is required'}, status=400)
 
-
+@login_required(login_url='/login/')
 @csrf_exempt
 def mark_messages_as_read(request, task_id):
     if request.method == "POST":
@@ -301,11 +460,13 @@ def mark_messages_as_read(request, task_id):
 
 
 # List Departments
+@login_required(login_url='/login/')
 def list_departments(request):
     departments = Department.objects.filter(company=request.user.company)
     return render(request, 'department/list_departments.html', {'departments': departments})
 
 # Create Department
+@login_required(login_url='/login/')
 def create_department(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -318,6 +479,7 @@ def create_department(request):
     return render(request, 'department/create_department.html')
 
 # Edit Department
+@login_required(login_url='/login/')
 def edit_department(request, id):
     department = get_object_or_404(Department, id=id, company=request.user.company)
 
@@ -330,6 +492,8 @@ def edit_department(request, id):
     return render(request, 'department/edit_department.html', {'department': department})
 
 # Delete Department
+@login_required(login_url='/login/')
+@permission_required('delete_department')
 def delete_department(request, id):
     department = get_object_or_404(Department, id=id, company=request.user.company)
 
@@ -341,11 +505,13 @@ def delete_department(request, id):
     return render(request, 'department/delete_department.html', {'department': department})
 
 # List Designations
+@login_required(login_url='/login/')
 def list_designations(request):
     designations = Designation.objects.filter(company=request.user.company)
     return render(request, 'designation/list_designations.html', {'designations': designations})
 
 # Create Designation
+@login_required(login_url='/login/')
 def create_designation(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -358,6 +524,7 @@ def create_designation(request):
     return render(request, 'designation/create_designation.html')
 
 # Edit Designation
+@login_required(login_url='/login/')
 def edit_designation(request, id):
     designation = get_object_or_404(Designation, id=id, company=request.user.company)
 
@@ -370,6 +537,7 @@ def edit_designation(request, id):
     return render(request, 'designation/edit_designation.html', {'designation': designation})
 
 # Delete Designation
+@login_required(login_url='/login/')
 def delete_designation(request, id):
     designation = get_object_or_404(Designation, id=id, company=request.user.company)
 
@@ -380,6 +548,69 @@ def delete_designation(request, id):
 
     return render(request, 'designation/delete_designation.html', {'designation': designation})
 
+
+
+
+# Role & Permissions
+
+@login_required(login_url='/login/')
+def role_list(request):
+    """Display the list of roles."""
+    roles = Role.objects.filter(company=request.user.company).order_by('-created_at')
+    context = {
+        'roles': roles,
+    }
+    return render(request, 'role_permissions/role_list.html', context)
+
+@login_required(login_url='/login/')
+def add_role(request):
+    """Add a new role."""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        permissions_ids = request.POST.getlist('permissions')
+        company = request.user.company
+
+        # Create the new role
+        role = Role.objects.create(name=name, company=company, is_active=True)
+        if permissions_ids:
+            permissions = Permission.objects.filter(id__in=permissions_ids)
+            role.permissions.set(permissions)
+        messages.success(request, 'Role added successfully!')
+        return redirect('role_list')
+
+    # Fetch permissions for the form
+    permissions = Permission.objects.filter(is_active=True)
+    return render(request, 'role_permissions/add_role.html', {'permissions': permissions})
+
+@login_required(login_url='/login/')
+def edit_role(request, id):
+    """Edit an existing role."""
+    role = get_object_or_404(Role, id=id, company=request.user.company)
+
+    if request.method == 'POST':
+        role.name = request.POST.get('name')
+        permissions_ids = request.POST.getlist('permissions')
+        if permissions_ids:
+            permissions = Permission.objects.filter(id__in=permissions_ids, is_active=True)
+            role.permissions.set(permissions)
+        else:
+            role.permissions.clear()
+        role.save()
+        messages.success(request, 'Role updated successfully!')
+        return redirect('role_list')
+
+    # Fetch permissions for the form
+    permissions = Permission.objects.filter(is_active=True)
+    return render(request, 'role_permissions/edit_role.html', {'role': role, 'permissions': permissions})
+
+@login_required(login_url='/login/')
+@permission_required('delete_role')
+def delete_role(request, id):
+    """Delete a role."""
+    role = get_object_or_404(Role, id=id, company=request.user.company)
+    role.delete()
+    messages.success(request, 'Role deleted successfully!')
+    return redirect('role_list')
 
 
 

@@ -1,0 +1,100 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<style>
+    /* Profile Image Styling */
+.img-fluid {
+    max-width: 150px;
+    height: auto;
+}
+
+/* Adjust Profile Info Layout */
+.card-body .row {
+    display: flex;
+    align-items: center;
+}
+
+/* Add some margin between input fields */
+.form-group.mb-3 {
+    margin-bottom: 15px;
+}
+
+</style>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">User Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Profile Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% endif %}" class="img-fluid rounded-circle" alt="Profile Picture">
+                            </div>
+                            <div class="col-md-8">
+                                <h5>{{ user.first_name }} {{ user.last_name }}</h5>
+                                <p>{{ user.email }}</p>
+                                <p><strong>Role:</strong> {{ user.role.name }}</p>
+                                <p><strong>Joined:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+                            </div>
+                        </div>
+                        
+                        <hr>
+
+                        <!-- Edit Profile Section -->
+                        <h5>Update Profile</h5>
+                        <div class="form-group mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture">
+                            <small class="form-text text-muted">Optional: Upload a new profile picture</small>
+                        </div>
+
+                        <hr>
+
+                        <!-- Change Password Section -->
+                        <h5>Change Password</h5>
+                        <div class="form-group mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="confirm_new_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_new_password" name="confirm_new_password">
+                        </div>
+
+                        <hr>
+
+                        <!-- Submit Button -->
+                        <div class="form-group d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success">Update Profile</button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-danger">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

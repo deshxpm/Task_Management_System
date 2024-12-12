@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.landingView, name='landing_page'),
 
     path('register', views.register_view, name='register'),
+    path('profile/', views.user_profile, name='user_profile'),
     
     # Employee
     path('employees/', views.employee_list, name='employee_list'),
@@ -12,6 +13,9 @@ urlpatterns = [
     path('employees/<int:id>/view/', views.view_employee, name='view_employee'),
     path('employees/<int:id>/edit/', views.edit_employee, name='edit_employee'),
     path('employees/<int:id>/delete/', views.delete_employee, name='delete_employee'),
+
+    path('employee/upload/', views.upload_employee_excel, name='upload_employee_excel'),
+    path('employee/demo/', views.download_demo_file, name='download_demo_file'),
 
     # Department
     path('departments/', views.list_departments, name='list_departments'),
@@ -48,4 +52,14 @@ urlpatterns = [
     # Mark messages as read
     path('mark_messages_as_read/<int:task_id>/', views.mark_messages_as_read, name='mark_messages_as_read'),
 
+    # Role & Permissions
+    path('roles/', views.role_list, name='role_list'),
+    path('roles/add/', views.add_role, name='add_role'),
+    path('roles/<int:id>/edit/', views.edit_role, name='edit_role'),
+    path('roles/<int:id>/delete/', views.delete_role, name='delete_role'),
+
+    path('protected-page/', views.some_protected_view, {'permission': 'view_reports'}, name='protected_page'),
+
 ]
+
+

@@ -8,6 +8,21 @@
             <a href="{% url 'create_employee' %}" class="btn btn-primary">Add New Employee</a>
         </div>
 
+        <!-- Excel File Upload and Demo File Download -->
+        <div class="d-flex justify-content-end mb-4">
+            <!-- Button to download demo file -->
+            <a href="{% url 'download_demo_file' %}" class="btn btn-info mr-3">Download Demo File</a>
+            
+            <!-- Form for uploading excel file -->
+            <form action="{% url 'upload_employee_excel' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="file" class="form-control" name="excel_file" accept=".xlsx, .xls">
+                    <button class="btn btn-success" type="submit">Upload Employees</button>
+                </div>
+            </form>
+        </div>
+
         <!-- Employee Table -->
         <table class="table table-bordered table-hover">
             <thead class="table-dark">

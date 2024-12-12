@@ -1,0 +1,23 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title">Protected Page</h3>
+        </div>
+        <div class="card-body">
+            <p class="lead">
+                Welcome to the protected page! You have the required permissions to access this content.
+            </p>
+            <hr>
+            <p>
+                Here, you can view and interact with sensitive or restricted information that is only available to authorized users.
+            </p>
+        </div>
+        <div class="card-footer text-end">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

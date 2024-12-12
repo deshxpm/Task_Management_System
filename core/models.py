@@ -12,6 +12,36 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
     
+    # Automatically assign a default role if none is provided
+    def save(self, *args, **kwargs):
+        if not self.role:  # If the role is not set, assign a default role
+            # Check if the 'default' role exists, if not create one
+            if not Role.objects.filter(name='default').exists():
+                if not self.company:
+                    raise ValueError("Cannot assign default role without a company.")
+                self.role = Role.objects.create(name='default', company=self.company)
+            else:
+                self.role = Role.objects.get(name='default')
+
+        super().save(*args, **kwargs)
+    
+    def has_permission(self, permission_name):
+        """Check if the user has the given permission."""
+        if self.is_superuser:
+            return True  # Superusers have all permissions
+
+        # If no role is assigned, return False
+        if not self.role:
+            print(f"No role assigned to user {self.username}")
+            return False
+
+        # Check the permissions of the role assigned to the user
+        permission_exists = self.role.permissions.filter(name=permission_name, is_active=True).exists()
+
+        if not permission_exists:
+            print(f"User {self.username} does not have the '{permission_name}' permission.")
+        return permission_exists
+    
     def mask_phone_number(self):
         """
         Masks the phone number, showing only the last 4 digits.
@@ -32,6 +62,7 @@ class User(AbstractUser):
                 return f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
             return self.email  # Return as is if local part is too short
         return None  # Return None if email is not provided
+    
 
 class Base(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
