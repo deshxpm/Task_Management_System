@@ -150,42 +150,34 @@
             }
         }
 
-
-        .content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2rem;
-    }
-    .box {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 200px;
-      height: 100px;
-      background-color: #4caf50;
-      color: white;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .box:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    }
-    .arrow {
-      width: 50px;
-      height: 50px;
-    }
-    .arrow path {
-      fill: #1976d2;
-    }
-  </style>
-
+        .box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 200px;
+        height: 100px;
+        background-color: #4caf50;
+        color: white;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .box:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        .arrow {
+        width: 50px;
+        height: 50px;
+        }
+        .arrow path {
+        fill: #1976d2;
+        }
     </style>
+
 </head>
 <body>
     <!-- Sidebar -->
@@ -250,19 +242,21 @@
     {% block content %}
         <!-- Main Content -->
         <div class="content">
-            <h2>**"Task and Employee Management Dashboard"**</h2> 
-            <h3>**"Streamlining Workflow with Intuitive Design and Visual Guides"**</h3>
-            <p>Start managing your tasks and explore features from the sidebar menu!</p>
+           <div class="" style="display: flex; flex-direction: column; align-items: center; gap: 2rem;"> 
+                <h2>**"Task and Employee Management Dashboard"**</h2> 
+                <h3>**"Streamlining Workflow with Intuitive Design and Visual Guides"**</h3>
+                <p>Start managing your tasks and explore features from the sidebar menu!</p>
 
-            <div class="box" id="taskCreation">Task Creation</div>
-            <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M12 2L12 22M19 15L12 22L5 15" />
-            </svg>
-            <div class="box" id="taskAssignment">Task Assignment</div>
-            <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M12 2L12 22M19 15L12 22L5 15" />
-            </svg>
-            <div class="box" id="notification">Notification</div>
+                <div class="box" id="taskCreation">Task Creation</div>
+                <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 2L12 22M19 15L12 22L5 15" />
+                </svg>
+                <div class="box" id="taskAssignment">Task Assignment</div>
+                <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 2L12 22M19 15L12 22L5 15" />
+                </svg>
+                <div class="box" id="notification">Notification</div>
+            </div>
         </div>
     {% endblock %}
 
