@@ -19,7 +19,26 @@
                     <td>{{ task.title }}</td>
                     <td>{{ task.description }}</td>
                     <td>{{ task.eta }}</td>
-                    <td>{% if task.is_completed %}Completed{% else %}Pending{% endif %}</td>
+                    <td>
+                        {{ task.get_status_display }}
+                        {% if user == task.user or user == task.assigned_to %}
+                            <select 
+                                class="form-select status-dropdown" 
+                                data-task-id="{{ task.id }}"
+                                {% if user == task.assignee %}
+                                    {% if task.status not in allowed_statuses_for_assignee %}disabled{% endif %}
+                                {% endif %}>
+                                <option value="open" {% if task.status == 'open' %}selected{% endif %}>Open</option>
+                                <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="hold" {% if task.status == 'hold' %}selected{% endif %}>Hold</option>
+                                <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+                                {% if user == task.assigner %}
+                                    <option value="reopen" {% if task.status == 'reopen' %}selected{% endif %}>Reopen</option>
+                                    <option value="closed" {% if task.status == 'closed' %}selected{% endif %}>Closed</option>
+                                {% endif %}
+                            </select>
+                        {% endif %}
+                    </td>
                     <td>
                         <a href="{% url 'task_detail' task.id %}" class="btn btn-info">View</a>
                         <button 
@@ -33,13 +52,14 @@
                                 0
                             </span>
                         </button>
-
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        
 
+        
         <!-- Modal for Chat -->
         <div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -234,6 +254,32 @@
         </script>
 
 
+        <script>
+            // Change Task Status
+            document.querySelectorAll('.status-dropdown').forEach(dropdown => {
+                dropdown.addEventListener('change', (event) => {
+                    const taskId = event.target.dataset.taskId;
+                    const newStatus = event.target.value;
+
+                    fetch(`/tasks/update/status/${taskId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Task status updated successfully!');
+                        } else {
+                            alert('Error updating task status.');
+                        }
+                    });
+                });
+            });
+        </script>
 
         <!-- Include Animate.css for smooth animations -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />

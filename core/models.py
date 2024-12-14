@@ -128,6 +128,9 @@ class Designation(Base):
 class Task(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
+    user = models.ForeignKey(
+        User, related_name='user_tasks', on_delete=models.CASCADE,
+        null=True, blank=True)
     created_by = models.ForeignKey(
         User, related_name='created_tasks', on_delete=models.CASCADE
     )
@@ -170,3 +173,4 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message[:50]}"
+

@@ -9,6 +9,7 @@ from .utils import *
 import openpyxl
 from django.http import HttpResponse, HttpResponseForbidden
 from functools import wraps
+# from .consumers import send_notification
 
 # Custom permission check decorator
 def permission_required(permission_name):
@@ -67,6 +68,8 @@ def user_profile(request):
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        
         profile_picture = request.FILES.get('profile_picture')
 
         if first_name and last_name and email:
@@ -74,6 +77,7 @@ def user_profile(request):
             user.first_name = first_name
             user.last_name = last_name
             user.email = email
+            user.phone_number = phone
             user.save()
 
             # Update profile picture if provided
@@ -263,10 +267,6 @@ def upload_employee_excel(request):
     return redirect('employee_list')
 
 
-
-
-
-
 # Login View
 def login_view(request):
     if request.method == 'POST':
@@ -339,6 +339,47 @@ def task_detail(request, task_id):
     task = Task.objects.get(id=task_id)
     messages = ChatMessage.objects.filter(task=task).order_by('timestamp')
     return render(request, 'tasks/task_detail.html', {'task': task, 'messages': messages})
+
+
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def update_task_status(request, task_id):
+    if request.method == 'POST':
+        user = request.user
+        task = get_object_or_404(Task, id=task_id)
+
+        # Check if the user is the assigner or assignee
+        # if user != task.user and user != task.assigned_to:
+        if not request.user.has_perm('Change_Task_Status'):
+            return JsonResponse({'success': False, 'message': 'Permission denied.'}, status=403)
+
+        # Parse the new status from the request
+        data = json.loads(request.body)
+        new_status = data.get('status')
+
+        # Permission checks
+        if user == task.assigned_to:
+            allowed_statuses = ['in_progress', 'completed', 'open', 'hold']
+            if new_status not in allowed_statuses:
+                return JsonResponse({'success': False, 'message': 'Invalid status update for assignee.'}, status=403)
+
+        elif user == task.user:
+            allowed_statuses = ['in_progress', 'completed', 'open', 'hold', 'reopen', 'closed']
+            if new_status not in allowed_statuses:
+                return JsonResponse({'success': False, 'message': 'Invalid status update for assigner.'}, status=403)
+
+        # Update the task's status
+        task.status = new_status
+        task.save()
+
+        # # Trigger notifications
+        # send_notification(user, task, new_status)
+
+        return JsonResponse({'success': True, 'message': 'Task status updated successfully.'})
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
+
 
 
 def get_chat_messages(request, task_id):

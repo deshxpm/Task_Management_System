@@ -40,6 +40,7 @@ urlpatterns = [
     path('task/<int:task_id>/chat/', views.task_chat_view, name='task_chat'),
     path('save-message/', views.save_message, name='save_message'),
     path('get_chat_messages/<int:task_id>/', views.get_chat_messages, name='get_chat_messages'),
+    path('tasks/update/status/<int:task_id>/', views.update_task_status, name='update_task_status'),
 
     path('chat/delete_message/<int:message_id>/', views.delete_message_view, name='delete_message'),
 

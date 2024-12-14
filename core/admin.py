@@ -8,8 +8,11 @@ class UserAdmin(DefaultUserAdmin):
         ('Additional Info', {'fields': ('phone_number', 'profile_picture', 'company', 'role')}),
     )
 
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'created_by', 'assigned_to')    
 
-admin.site.register(Task)
+admin.site.register(Task, TaskAdmin)
+
 admin.site.register(ChatMessage)
 admin.site.register(Notification)
 admin.site.register(Company)

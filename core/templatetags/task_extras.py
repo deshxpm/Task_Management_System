@@ -8,6 +8,7 @@ def status_color(status):
         'pending': 'badge-pending',
         'completed': 'badge-completed',
         'in-progress': 'badge-in-progress',
-        'cancelled': 'badge-cancelled',
+        'open': 'badge-open',
+        'closed': 'badge=closed',
     }
     return colors.get(status.lower(), 'badge-secondary')
